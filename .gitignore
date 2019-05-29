@@ -1,0 +1,13 @@
+/api/.env.local
+/api/.env.local.php
+/api/.env.*.local
+/api/public/bundles/
+/api/var/
+/api/vendor/
+/consumer/.env.local
+/consumer/.env.local.php
+/consumer/.env.*.local
+/consumer/public/bundles/
+/consumer/var/
+/consumer/vendor/
+.idea/*
