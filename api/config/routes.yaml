@@ -1,3 +1,0 @@
-#revocvery:
-    #path: /user/remind
-    #controller: App\Controller\User::remind

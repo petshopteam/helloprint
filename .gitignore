@@ -1,4 +1,19 @@
+.idea
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
 
-.idea/*
-docker/db_queue/data/*
+###< symfony/framework-bundle ###
+/docker/mysql/data/*
+/docker/api/log/*
+/docker/client/log/*
 
+
+
+###> symfony/phpunit-bridge ###
+.phpunit
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+docker/

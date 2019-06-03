@@ -1,31 +1,81 @@
 version: '2'
 services:
-    nginx:
-        image: nginx:latest
+    web:
+        build:
+          context: ./docker/client
+          dockerfile: Dockerfile
+          args:
+            UID: $UID
+            GUID: $GUID
+
         ports:
-            - "8081:80"
+            - $NGINX_PORT_WEB:80
         volumes:
-          - ./api/public:/srv/api/public:ro
-          - ./api/docker/nginx/conf.d:/etc/nginx/conf.d
-          - ./api/var/log/nginx:/var/log/nginx
+          - ./docker/client/nginx.conf:/etc/nginx/nginx.conf
+          - ./projects/client/public:/var/www/public:ro
+          - ./docker/client/log:/var/log/nginx
+    api:
+        build:
+          context: ./docker/api
+          dockerfile: Dockerfile
+          args:
+            UID: $UID
+            GUID: $GUID
+
+        ports:
+            - $NGINX_PORT:80
+        volumes:
+          - ./docker/api/nginx.conf:/etc/nginx/nginx.conf
+          - ./projects/api/public:/var/www/public:ro
+          - ./docker/api/conf.d:/etc/nginx/conf.d
+          - ./docker/api/log:/var/log/nginx
         depends_on:
-            - php
+          - php
     php:
-        build: ./api/docker/php
+        build:
+          context: ./docker/php
+          dockerfile: Dockerfile
+          args:
+            UID: $UID
+            GUID: $GUID
+        volumes:
+            - ./projects/api:/var/www/:rw,cached
         links:
-            - db_queue
+          - mariadb
+
+    consumer:
+        build:
+          context: ./docker/php
+          dockerfile: Dockerfile
+          args:
+            UID: $UID
+            GUID: $GUID
         volumes:
-            - ./api:/srv/api:rw,cached
-    db_queue:
+            - ./projects/consumer:/var/www/:rw,cached
+        links:
+          - mariadb
+
+    mariadb:
         restart: always
-        image: mysql:8
+        image: mariadb:10.3
         ports:
-            - "23306:3306"
+            - "127.0.0.1:23306:3306"
         volumes:
-            - ./docker/db_queue/data:/var/lib/mysql
-        # задаем пароль для root пользователя
+            - ./docker/mysql/data:/var/lib/mysql
         environment:
-          MYSQL_DATABASE: db_queue
-          MYSQL_USER: groonel
-          MYSQL_PASSWORD: pus7MhrXFuUmtqvp
-          MYSQL_ROOT_PASSWORD: pus7MhrXFuUmtqvp!
+          MYSQL_DATABASE: $MYSQL_DATABASE
+          MYSQL_USER: $MYSQL_USER
+          MYSQL_PASSWORD: $MYSQL_PASSWORD
+          MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+    pma:
+        restart: always
+        image: phpmyadmin/phpmyadmin
+        links:
+          - mariadb:db
+        ports:
+          - $PMA_PORT:80
+        environment:
+            DBUSER: root
+            DBPASS: $MYSQL_ROOT_PASSWORD
+        depends_on:
+          - mariadb

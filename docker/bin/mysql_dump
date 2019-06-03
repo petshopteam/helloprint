@@ -1,0 +1,4 @@
+#!/bin/bash
+
+
+docker-compose exec -T  mariadb mysql -uroot -p!pus7MhrXFuUmtqvp! iq_payments < ./docker/mysql/dump.sql
