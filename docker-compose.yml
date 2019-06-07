@@ -30,10 +30,23 @@ services:
           - ./docker/api/conf.d:/etc/nginx/conf.d
           - ./docker/api/log:/var/log/nginx
         depends_on:
-          - php
-    php:
+          - php-fpm
+#    php:
+#        build:
+#          context: ./docker/php
+#          dockerfile: Dockerfile
+#          args:
+#            UID: $UID
+#            GUID: $GUID
+#        volumes:
+#            - ./projects/api:/var/www/:rw,cached
+#        links:
+#          - mariadb
+#          - rabbitmq
+
+    php-fpm:
         build:
-          context: ./docker/php
+          context: ./docker/php-fpm
           dockerfile: Dockerfile
           args:
             UID: $UID
@@ -42,10 +55,11 @@ services:
             - ./projects/api:/var/www/:rw,cached
         links:
           - mariadb
+          - rabbitmq
 
     consumer:
         build:
-          context: ./docker/php
+          context: ./docker/php-fpm
           dockerfile: Dockerfile
           args:
             UID: $UID
@@ -54,6 +68,7 @@ services:
             - ./projects/consumer:/var/www/:rw,cached
         links:
           - mariadb
+          - rabbitmq
 
     mariadb:
         restart: always
@@ -79,3 +94,15 @@ services:
             DBPASS: $MYSQL_ROOT_PASSWORD
         depends_on:
           - mariadb
+
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - "5672:5672"
+          - "5671:5671"
+        volumes:
+           - ./docker/rabbitmq:/bitnami
+        environment:
+             RABBITMQ_DEFAULT_PASS: $RABBIT_PASS
+             RABBITMQ_DEFAULT_USER: $RABBIT_USER
+             RABBITMQ_DEFAULT_VHOST: vhost
